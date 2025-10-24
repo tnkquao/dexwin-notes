@@ -13,6 +13,8 @@ import java.util.List;
 public class NoteResponseDto {
     private Long id;
 
+    private UserResponseDto user;
+
     private String title;
 
     private String content;

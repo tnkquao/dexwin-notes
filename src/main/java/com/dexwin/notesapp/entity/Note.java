@@ -23,6 +23,10 @@ public class Note {
 
     private String content;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
 //    private List<NoteTag> tags;
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

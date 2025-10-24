@@ -57,6 +57,23 @@ public class NoteController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Map<String, Object>> listNotesByUser(@PathVariable("userId") Long userId,
+                                                         @RequestParam(required = false) List<String> tags,
+                                                         @RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "10") int size) {
+
+        Page<Note> notesPage = noteService.getNotesByUser(userId, page, size);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("notes", notesPage.getContent());
+        response.put("currentPage", notesPage.getNumber());
+        response.put("totalItems", notesPage.getTotalElements());
+        response.put("totalPages", notesPage.getTotalPages());
+
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponseDTO> updateNote(
             @PathVariable final Long id, @Valid @RequestBody final NoteRequestDto requestDto ) {

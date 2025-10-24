@@ -3,22 +3,24 @@ package com.dexwin.notesapp.service;
 import com.dexwin.notesapp.dtos.request.NoteRequestDto;
 import com.dexwin.notesapp.dtos.response.NoteResponseDto;
 import com.dexwin.notesapp.entity.Note;
+import com.dexwin.notesapp.entity.Tag;
 import com.dexwin.notesapp.mappers.NoteMapper;
 import com.dexwin.notesapp.repository.NoteRepository;
+import com.dexwin.notesapp.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,16 +28,14 @@ import java.util.stream.Collectors;
 public class NoteService {
     private final NoteRepository noteRepository;
     private final NoteMapper noteMapper;
+    private final TagRepository tagRepository;
 
     public NoteResponseDto createNote(NoteRequestDto requestDto) {
         if (requestDto == null)
             throw new IllegalArgumentException("Note requestDto is null");
 
         Note entity = noteMapper.toEntity(requestDto);
-
-        if (requestDto.getTags() != null && !requestDto.getTags().isEmpty()) {
-
-        }
+        entity.setTags(resolveTags(requestDto.getTags()));
 
         Note saved = noteRepository.save(entity);
 
@@ -53,6 +53,13 @@ public class NoteService {
                 .stream()
                 .map(noteMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public Page<Note> getNotesByUser(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        return noteRepository.findByUserId(userId, pageable);
+
     }
 
     public Page<Note> list(String q, List<String> tags, int page, int size) {
@@ -91,5 +98,12 @@ public class NoteService {
             n.setDeletedAt(Timestamp.from(Instant.now()));
             noteRepository.save(n);
         });
+    }
+
+    private Set<Tag> resolveTags(List<String> tagNames) {
+        if (tagNames == null) return new HashSet<>();
+        return tagNames.stream()
+                .map(name -> tagRepository.findByName(name).orElseGet(() -> tagRepository.save(new Tag() {{ setName(name); }})))
+                .collect(Collectors.toSet());
     }
 }
