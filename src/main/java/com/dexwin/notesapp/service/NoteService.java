@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +59,7 @@ public class NoteService {
     public Page<Note> getNotesByUser(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
 
-        return noteRepository.findByUserId(userId, pageable);
+        return noteRepository.findActiveNotesByUserId(userId, pageable);
 
     }
 
@@ -98,6 +99,26 @@ public class NoteService {
             n.setDeletedAt(Timestamp.from(Instant.now()));
             noteRepository.save(n);
         });
+    }
+
+    public NoteResponseDto restoreNote(Long notedId, String username) {
+        Note note = noteRepository.findById(notedId)
+                .orElseThrow( () -> new NoSuchElementException("Note with id " + notedId + " not found"));
+
+        // Check ownership
+        if (!note.getUser().getUsername().equals(username)) {
+            throw new AccessDeniedException("You are not allowed to restore this note");
+        }
+
+        // Check if it was deleted
+        if (note.getDeletedAt() == null) {
+            throw new IllegalStateException("Note is not deleted");
+        }
+
+        note.setDeletedAt(null);
+        Note restored = noteRepository.save(note);
+
+        return noteMapper.toDto(restored);
     }
 
     private Set<Tag> resolveTags(List<String> tagNames) {

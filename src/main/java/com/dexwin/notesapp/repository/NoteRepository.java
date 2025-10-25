@@ -22,5 +22,6 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     @Query("SELECT n FROM Note n WHERE n.deletedAt IS NULL")
     Page<Note> findAllNotDeleted(Pageable pageable);
 
-    Page<Note> findByUserId(Long id, Pageable pageable);
+    @Query("SELECT n FROM Note n WHERE n.user.id = :userId AND n.deletedAt IS NULL ORDER BY n.updatedAt DESC")
+    Page<Note> findActiveNotesByUserId(Long userId, Pageable pageable);
 }
