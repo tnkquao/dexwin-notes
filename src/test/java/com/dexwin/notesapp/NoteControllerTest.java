@@ -3,6 +3,7 @@ package com.dexwin.notesapp;
 import com.dexwin.notesapp.controller.NoteController;
 import com.dexwin.notesapp.dtos.request.NoteRequestDto;
 import com.dexwin.notesapp.dtos.response.NoteResponseDto;
+import com.dexwin.notesapp.dtos.response.TagResponseDto;
 import com.dexwin.notesapp.entity.Note;
 import com.dexwin.notesapp.entity.Tag;
 import com.dexwin.notesapp.service.NoteService;
@@ -59,17 +60,17 @@ class NoteControllerTest {
         NoteRequestDto request = new NoteRequestDto();
         request.setTitle("Test Note");
         request.setContent("This is a test");
-        request.setTags(List.of("tag1","tag2"));
+        request.setTags(Set.of("tag1","tag2"));
 
         NoteResponseDto response = new NoteResponseDto();
         response.setId(1L);
         response.setTitle(request.getTitle());
         response.setContent(request.getContent());
-        response.setTags(request.getTags());
+        // response.setTags(request.getTags());
         response.setCreatedAt(Timestamp.from(Instant.now()));
         response.setUpdatedAt(Timestamp.from(Instant.now()));
 
-        Mockito.when(noteService.createNote(any(NoteRequestDto.class))).thenReturn(response);
+        Mockito.when(noteService.createNote(any(NoteRequestDto.class), "tarek")).thenReturn(response);
 
         mockMvc.perform(post("/api/notes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -97,10 +98,10 @@ class NoteControllerTest {
     @DisplayName("GET /api/notes - List Notes")
     @WithMockUser(username = "tarek", roles = {"USER"})
     void listNotes_success() throws Exception {
-        Tag tag1 = new Tag();
+        TagResponseDto tag1 = new TagResponseDto();
         tag1.setName("science");
 
-        Note note = new Note();
+        NoteResponseDto note = new NoteResponseDto();
         note.setId(1L);
         note.setTitle("Test Note");
         note.setContent("Content");
@@ -108,7 +109,7 @@ class NoteControllerTest {
         note.setCreatedAt(Timestamp.from(Instant.now()));
         note.setUpdatedAt(Timestamp.from(Instant.now()));
 
-        Page<Note> notePage = new PageImpl<Note>(List.of(note), PageRequest.of(0, 10), 1);
+        Page<NoteResponseDto> notePage = new PageImpl<>(List.of(note), PageRequest.of(0, 10), 1);
 
         Mockito.when(noteService.list(any(), any(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(note), PageRequest.of(0, 10), 1));

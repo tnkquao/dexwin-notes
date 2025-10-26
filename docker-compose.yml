@@ -1,19 +1,43 @@
 version: "3.9"
 
+name: dex_notes
+
 services:
   postgres:
     image: postgres:16
-    container_name: notes_postgres
+    container_name: dex_notes_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: notes_db
-      POSTGRES_USER: notesuser
-      POSTGRES_PASSWORD: notespass123
+      POSTGRES_DB: dex_notes
+      POSTGRES_USER: ${PG_DB_USER}
+      POSTGRES_PASSWORD: ${PG_DB_PASS}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./src/main/resources/db/postgres-init:/docker-entrypoint-initdb.d
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U notesuser -d dex_notes" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+   build: .
+   container_name: spring_app
+   restart: on-failure
+   depends_on:
+     postgres:
+       condition: service_healthy
+   environment:
+     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dex_notes
+     SPRING_DATASOURCE_USERNAME: notesuser
+     SPRING_DATASOURCE_PASSWORD: notespass123
+   ports:
+     - "8080:8080"
+   networks:
+     - app-network
 
 volumes:
   postgres_data:

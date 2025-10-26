@@ -37,4 +37,8 @@ public class Tag {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Timestamp updatedAt;
+
+    public Tag(String name) {
+        this.name = name;
+    }
 }

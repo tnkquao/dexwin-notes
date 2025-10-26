@@ -54,8 +54,6 @@ public class NoteService {
 
         note.setUser(user);
 
-        note.setTags(resolveTags(requestDto.getTags()));
-
         Note saved = noteRepository.save(note);
 
         return noteMapper.toDto(saved);
