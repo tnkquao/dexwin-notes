@@ -4,9 +4,11 @@ import com.dexwin.notesapp.dtos.request.NoteRequestDto;
 import com.dexwin.notesapp.dtos.response.NoteResponseDto;
 import com.dexwin.notesapp.entity.Note;
 import com.dexwin.notesapp.entity.Tag;
+import com.dexwin.notesapp.entity.User;
 import com.dexwin.notesapp.mappers.NoteMapper;
 import com.dexwin.notesapp.repository.NoteRepository;
 import com.dexwin.notesapp.repository.TagRepository;
+import com.dexwin.notesapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,15 +32,31 @@ public class NoteService {
     private final NoteRepository noteRepository;
     private final NoteMapper noteMapper;
     private final TagRepository tagRepository;
+    private final UserRepository userRepository;
 
-    public NoteResponseDto createNote(NoteRequestDto requestDto) {
+    public NoteResponseDto createNote(NoteRequestDto requestDto, String username) {
         if (requestDto == null)
             throw new IllegalArgumentException("Note requestDto is null");
 
-        Note entity = noteMapper.toEntity(requestDto);
-        entity.setTags(resolveTags(requestDto.getTags()));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
 
-        Note saved = noteRepository.save(entity);
+        Note note = noteMapper.toEntity(requestDto);
+        Set<Tag> tags = requestDto.getTags().stream()
+                .map(tagName -> {
+                    return tagRepository.findByName(tagName)
+                            .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+
+                })
+                .collect(Collectors.toSet());
+
+        note.setTags(tags);
+
+        note.setUser(user);
+
+        note.setTags(resolveTags(requestDto.getTags()));
+
+        Note saved = noteRepository.save(note);
 
         return noteMapper.toDto(saved);
     }
@@ -63,18 +81,18 @@ public class NoteService {
 
     }
 
-    public Page<Note> list(String q, List<String> tags, int page, int size) {
+    public Page<NoteResponseDto> list(String q, List<String> tags, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updatedAt"));
 
         if (q != null && !q.isBlank()) {
-            return noteRepository.search(q, pageable);
+            return noteRepository.search(q, pageable).map(noteMapper::toDto);
         }
 
         if (tags != null && !tags.isEmpty()) {
-            return noteRepository.findByTags(tags, pageable);
+            return noteRepository.findByTags(tags, pageable).map(noteMapper::toDto);
         }
 
-        return noteRepository.findAllNotDeleted(pageable);
+        return noteRepository.findAllNotDeleted(pageable).map(noteMapper::toDto);
     }
 
     public NoteResponseDto updateNote(Long id, NoteRequestDto requestDto) {
@@ -121,7 +139,7 @@ public class NoteService {
         return noteMapper.toDto(restored);
     }
 
-    private Set<Tag> resolveTags(List<String> tagNames) {
+    private Set<Tag> resolveTags(Set<String> tagNames) {
         if (tagNames == null) return new HashSet<>();
         return tagNames.stream()
                 .map(name -> tagRepository.findByName(name).orElseGet(() -> tagRepository.save(new Tag() {{ setName(name); }})))

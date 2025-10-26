@@ -8,13 +8,12 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
 @ToString
 public class NoteRequestDto {
-    @NotNull(message = "User id is required")
-    private Long userId;
 
     @NotBlank(message = "Title cannot be blank")
     @Size(max = 255, message = "Title too long")
@@ -23,5 +22,5 @@ public class NoteRequestDto {
     @NotBlank(message = "Content cannot be blank")
     private String content;
 
-    private List<String> tags;
+    private Set<String> tags;
 }

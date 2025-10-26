@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -25,7 +26,10 @@ public class NoteController {
 
     @PostMapping
     public ResponseEntity<ApiResponseDTO> createNote(@Valid @RequestBody final NoteRequestDto noteRequestDto) {
-        final NoteResponseDto response = noteService.createNote(noteRequestDto);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+
+        final NoteResponseDto response = noteService.createNote(noteRequestDto, username);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponseDTO(true,response,null));
     }
 
@@ -47,10 +51,10 @@ public class NoteController {
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "10") int size) {
 
-        Page<Note> notesPage = noteService.list(q, tags, page, size);
+        Page<NoteResponseDto> notesPage = noteService.list(q, tags, page, size);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("notes", notesPage.getContent());
+        response.put("content", notesPage.getContent());
         response.put("currentPage", notesPage.getNumber());
         response.put("totalItems", notesPage.getTotalElements());
         response.put("totalPages", notesPage.getTotalPages());

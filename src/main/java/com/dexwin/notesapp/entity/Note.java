@@ -27,7 +27,6 @@ public class Note {
     @JoinColumn(name = "user_id")
     private User user;
 
-//    private List<NoteTag> tags;
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "note_tags",

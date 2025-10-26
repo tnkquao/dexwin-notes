@@ -6,6 +6,7 @@ import lombok.ToString;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -19,7 +20,7 @@ public class NoteResponseDto {
 
     private String content;
 
-    private List<String> tags;
+    private Set<TagResponseDto> tags;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 }
