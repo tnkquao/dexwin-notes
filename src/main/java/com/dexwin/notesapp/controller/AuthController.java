@@ -4,6 +4,10 @@ import com.dexwin.notesapp.dtos.AuthDtos;
 import com.dexwin.notesapp.entity.User;
 import com.dexwin.notesapp.repository.UserRepository;
 import com.dexwin.notesapp.security.JwtUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Authentication", description = "Endpoints for user signup, login, and logout")
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -34,6 +39,14 @@ public class AuthController {
         this.jwtUtils = jwtUtils;
     }
 
+    @Operation(
+            summary = "Register a new user",
+            description = "Creates a new user and returns a JWT token",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User registered successfully"),
+                    @ApiResponse(responseCode = "400", description = "Username already taken", content = @Content)
+            }
+    )
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody AuthDtos.SignupRequest req) {
         if (userRepository.existsByUsername(req.getUsername())) {
@@ -49,6 +62,14 @@ public class AuthController {
         return ResponseEntity.ok(new AuthDtos.JwtResponse(token, u.getUsername()));
     }
 
+    @Operation(
+            summary = "Authenticate user and issue JWT token",
+            description = "Verifies credentials and returns a JWT token in response and cookie",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Successfully authenticated"),
+                    @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content)
+            }
+    )
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody AuthDtos.LoginRequest req, HttpServletResponse response) {
         try {
@@ -70,6 +91,13 @@ public class AuthController {
         }
     }
 
+    @Operation(
+            summary = "Logout current user",
+            description = "Clears the JWT cookie",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Logged out successfully")
+            }
+    )
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
 
