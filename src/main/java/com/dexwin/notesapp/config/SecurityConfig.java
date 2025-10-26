@@ -53,10 +53,16 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/auth/**", "/api/**", "/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                .formLogin(form -> form.disable())
+                // Allow logout
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/auth/login?logout=true")
+                        .permitAll()
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
