@@ -51,7 +51,9 @@ Clone the repository:
 ## 🧹 Cleanup
 To stop and remove containers and volumes:
 
+## 🧭 API Documentation (Swagger UI)
+This project includes interactive API documentation powered by Swagger UI.
 
-
-To Run
-- 
+## 🔹 Accessing Swagger UI
+Once the application is running, open your browser and navigate to:
+http://localhost:8080/swagger-ui.html
