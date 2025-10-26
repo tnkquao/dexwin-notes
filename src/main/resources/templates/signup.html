@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Notes App - Signup</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<h2>Create an account</h2>
+
+<form id="signupForm">
+    <label>Username:</label><br/>
+    <input type="text" id="username" required/><br/>
+
+    <label>Password:</label><br/>
+    <input type="password" id="password" required/><br/><br/>
+
+    <button type="submit">Sign Up</button>
+</form>
+
+<p id="message" style="color:red;"></p>
+
+<script>
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('token', data.token);
+        window.location.href = '/auth/login';
+      } else {
+        const text = await res.text();
+        document.getElementById('message').textContent = 'Signup failed' + ' ' + text;
+      }
+    });
+</script>
+</body>
+</html>

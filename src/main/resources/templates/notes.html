@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Notes</title>
+        <style>
+            .error { color: red; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <span>Welcome, <span th:text="${username}"></span></span>
+            <button id="logoutBtn">Logout</button>
+        </header>
+        <h1>Notes</h1>
+
+        <!-- Search & Filters -->
+        <input type="text" id="search" placeholder="Search by title/content">
+        <input type="text" id="tagsFilter" placeholder="Filter tags, comma-separated">
+        <select id="sort">
+            <option value="updatedAt,desc">Updated At DESC</option>
+            <option value="updatedAt,asc">Updated At ASC</option>
+            <option value="createdAt,desc">Created At DESC</option>
+        </select>
+        <button id="applyFilter">Apply</button>
+        <button id="createNoteBtn">Create Note</button>
+
+        <!-- Notes Table -->
+        <table border="1" id="notesTable">
+            <thead>
+            <tr>
+                <th>Title</th><th>Content</th><th>Tags</th><th>Created</th><th>Updated</th><th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div id="pagination"></div>
+
+        <!-- Create/Edit Note Modal -->
+        <div id="noteModal" style="display:none; border:1px solid black; padding:10px;">
+            <h3 id="modalTitle">Create Note</h3>
+            <input type="hidden" id="noteId">
+            <label>Title: <input type="text" id="noteTitle"></label><span id="titleError" class="error"></span><br>
+            <label>Content: <input type="text" id="noteContent"></label><span id="contentError" class="error"></span><br>
+            <label>Tags: <input type="text" id="noteTags"></label><br>
+            <button id="saveNote">Save</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+
+        <script src="/js/notes.js"></script>
+    </body>
+</html>
